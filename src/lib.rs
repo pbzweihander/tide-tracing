@@ -45,7 +45,11 @@ impl TraceMiddleware {
                         }
                         span.in_scope(|| error!("sent"));
                     } else if status.is_client_error() {
-                        warn_span!("Client error").in_scope(|| warn!("sent"));
+                        let span = warn_span!("Client error", error = field::Empty);
+                        if let Some(error) = response.error() {
+                            span.record("error", &field::display(error));
+                        }
+                        span.in_scope(|| warn!("sent"));
                     } else {
                         info!("sent")
                     }
